@@ -1,4 +1,10 @@
 
+var changeType = {
+    CHANGE_Wall_Frequency : 1,
+    CHANGE_Grid_Size : 2,
+};
+
+
 var HelloWorldLayer = cc.Layer.extend({
     ctor:function () {
         this._super();
@@ -11,7 +17,7 @@ var HelloWorldLayer = cc.Layer.extend({
         //this._mapNode = cc.Sprite("");
         //this.addChild(this._mapNode);
 
-        //this.initMainUI();
+        this.initMainUI();
 
         return true;
     },
@@ -46,9 +52,10 @@ var HelloWorldLayer = cc.Layer.extend({
         this.addChild(checkbox1);
 
         
+
     },
 
-    initMap : function (num) {
+    initMapData : function (num) {
         var havenum = num == null ? false : true;
         if (havenum)
         {
@@ -62,9 +69,9 @@ var HelloWorldLayer = cc.Layer.extend({
         }
         else
         {
-            for (var i = 0; i < 15; i++)
+            for (var i = 0; i < 10; i++)
             {
-                for (var i = 0; i < 15; i++)
+                for (var i = 0; i < 10; i++)
                 {
 
                 }
@@ -74,6 +81,28 @@ var HelloWorldLayer = cc.Layer.extend({
     
     createMap : function () {
         
+    },
+
+    getGridSize : function () {
+        return this._grid_size;
+    },
+
+    getWallFrequency : function () {
+        return this._wall_frequency;
+    },
+
+    changeContent : function (value, type) {
+        switch (type)
+        {
+            case changeType.CHANGE_Wall_Frequency:
+                this._wall_frequency = value;
+                break;
+            case changeType.CHANGE_Grid_Size:
+                this._grid_size = value;
+                break;
+            default:
+                break;
+        }
     },
 
     checkboxSelect : function (sender, type) {
@@ -94,6 +123,9 @@ var HelloWorldLayer = cc.Layer.extend({
     _mapNode : null,
 
     _maps : null,
+
+    _wall_frequency : null,
+    _grid_size : null,
 
     _text_show_search_info : null,
     _checkbox_show_search_info : null,
