@@ -7,7 +7,7 @@
 var Finding = cc.Class.extend({
     ctor : function () {
         this.tiles = [];
-        this.size = cc.size(0, 0);
+        this.size = cc.size(0, 0);  //width和height
         this.smooth = false;
         this.diagonally = true;
     },
