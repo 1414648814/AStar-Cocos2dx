@@ -4,18 +4,61 @@ var changeType = {
     CHANGE_Grid_Size : 2,
 };
 
+var NCheckBox = cc.Node.extend({
+    ctor : function () {
+        cc.Node.prototype.ctor.call(this);
+
+        this.setContentSize(100, 30);
+        var size = cc.director.getWinSize();
+
+        var text = new ccui.Text();
+        text.setFontName("Marker Felt");
+        text.setFontSize(20);
+        text.setAnchorPoint(0, 0.5);
+        text.setPosition(cc.p(0, this.getContentSize().height/2));
+        this._text = text;
+        this.addChild(text);
+
+        var checkbox = new ccui.CheckBox("res/check_box_normal.png", "res/check_box_active.png");
+        checkbox.setAnchorPoint(0, 0.5);
+        checkbox.setTouchEnabled(true);
+        checkbox.addEventListener(this.eventSelectCheckBox.bind(this, checkbox), this);
+        this._checkbox = checkbox;
+        this.addChild(checkbox);
+    },
+
+    setTextContent : function (content) {
+        this._text.setString(content);
+        this._checkbox.setPosition(cc.p(this._text.getContentSize().width + 10, this.getContentSize().height/2));
+    },
+
+    eventSelectCheckBox : function (checkbox) {
+        return checkbox.isSelected();
+    },
+
+    _text : null,
+    _checkbox : null,
+
+});
+
+NCheckBox.create = function () {
+    return new NCheckBox();
+};
+
+var NDropDownMenu = cc.Node.extend({
+    ctor : function () {
+        
+    },
+
+});
+
+NDropDownMenu.prototype.create = function () {
+    return new NDropDownMenu();
+};
 
 var HelloWorldLayer = cc.Layer.extend({
     ctor:function () {
         this._super();
-
-        var size = cc.winSize;
-
-        //this._uiNode = new cc.Sprite("");
-        //this.addChild(this._uiNode);
-        //
-        //this._mapNode = cc.Sprite("");
-        //this.addChild(this._mapNode);
 
         this.initMainUI();
 
@@ -34,25 +77,33 @@ var HelloWorldLayer = cc.Layer.extend({
      */
     initMainUI : function () {
         var size = cc.director.getWinSize();
+        this._checkboxs = [];
+        this._dropdowns = [];
+        // 下拉选择框
 
-        //text_show_search_info
-        var text1 = new ccui.Text("show_search_info", "Marker Felt", 20);
-        text1.setAnchorPoint(cc.p(0, 1));
-        text1.setPosition(cc.p(0, size.height - 20));
-        this._text_show_search_info = text1;
-        this.addChild(text1);
 
-        //checkbox_show_search_info
-        var checkbox1 = new ccui.CheckBox("res/check_box_normal.png", "res/check_box_active.png");
-        checkbox1.setAnchorPoint(0, 1);
-        checkbox1.setPosition(cc.p(text1.getContentSize().width + 10, size.height - 20));
-        checkbox1.setTouchEnabled(true);
-        checkbox1.addEventListener(this.checkboxSelect, this);
-        this._checkbox_show_search_info = checkbox1;
-        this.addChild(checkbox1);
+        // 复选框内容
+        var boxCentent = ["显示搜索信息", "对角线移动", "尽可能接近目标", "添加任意权值", "显示权值"];
+        for (var i = 0; i < boxCentent.length; i++) {
+            var checkbox = NCheckBox.create();
+            checkbox.setAnchorPoint(0, 1);
+            checkbox.setPosition(0, size.height - i * checkbox.getContentSize().height);
+            checkbox.setTextContent(boxCentent[i]);
+            checkbox.setTag(i+1);
+            this.addChild(checkbox);
+            this._checkboxs.push(checkbox);
+        }
+
+    },
+
+    /**
+     * 初始化
+     */
+    initData : function () {
+        this._grids = [];
+        var nodes = [];
 
         
-
     },
 
     initMapData : function (num) {
@@ -91,44 +142,18 @@ var HelloWorldLayer = cc.Layer.extend({
         return this._wall_frequency;
     },
 
-    changeContent : function (value, type) {
-        switch (type)
-        {
-            case changeType.CHANGE_Wall_Frequency:
-                this._wall_frequency = value;
-                break;
-            case changeType.CHANGE_Grid_Size:
-                this._grid_size = value;
-                break;
-            default:
-                break;
-        }
-    },
-
-    checkboxSelect : function (sender, type) {
-        switch (type)
-        {
-            case ccui.CheckBox.EVENT_UNSELECTED:
-                console.log("UNSELECTED");
-                break;
-            case ccui.CheckBox.EVENT_SELECTED:
-                console.log("SELECTED");
-                break;
-            default:
-                break;
-        }
-    },
 
     _uiNode : null,
     _mapNode : null,
 
     _maps : null,
+    _grids : null,
+
+    _checkboxs : null,
+    _dropdowns : null,
 
     _wall_frequency : null,
     _grid_size : null,
-
-    _text_show_search_info : null,
-    _checkbox_show_search_info : null,
 
     _text_allow_diagonally : null,
     _checkbox_allow_diagonally : null,
