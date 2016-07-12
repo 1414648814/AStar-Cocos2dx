@@ -13,6 +13,9 @@
 
     "jsList" : [
         "src/resource.js",
-        "src/app.js"
+        "src/app.js",
+        "src/astar.js",
+        "src/finding.js",
+        "src/grid.js"
     ]
 }
