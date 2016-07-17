@@ -66,6 +66,10 @@ var Grid = ccui.Button.extend({
         this._state = GridState.GRID_NORMAL;
     },
 
+    toString : function () {
+        return "[" + this.getX() + "," + this.getY() + "]";
+    },
+
     //setModeScale : function (enale, scale) {
     //    if (enale)
     //        this.setScale(scale);

@@ -115,7 +115,7 @@ var HelloWorldLayer = cc.Layer.extend({
         createMapBtn.setTitleText("生成地图");
         createMapBtn.setAnchorPoint(0, 0);
         createMapBtn.setPosition(20, 20);
-        createMapBtn.addClickEventListener(this.refreshData);
+        createMapBtn.addClickEventListener(this.refreshData.bind(this));
         this.addChild(createMapBtn);
     },
 
@@ -175,14 +175,14 @@ var HelloWorldLayer = cc.Layer.extend({
             return ;
 
         console.log("the (" + sender.getX() +"," + sender.getY() + ") click it");
-        if (sender.getState() == GridState.GRID_START || sender.getState() == GridState.GRID_START) {
+        if (sender.getState() == GridState.GRID_START || sender.getState() == GridState.GRID_WALL) {
             return ;
         }
         var end = this.getGridCellItem(sender);
         var start = this.getGridCellItem(this._startItem);
 
         this._closet_target = true;
-        var path = this._search(this._graph, start, end, this._options);
+        var path = this._search(this._graph, start, end, this.getOptions());
         if (path.length === 0) {
             this.animateNoPath();
         }
@@ -193,6 +193,7 @@ var HelloWorldLayer = cc.Layer.extend({
             this._startItem = sender;
             this._path_running = false;
         }
+
     },
 
     animateNoPath : function () {
@@ -215,10 +216,11 @@ var HelloWorldLayer = cc.Layer.extend({
                 cc.callFunc(FadeToGreenAction.bind(this, grid)),
                 cc.delayTime(0.25),
                 cc.callFunc(FadeToYellowAction.bind(this, grid))
-            ).repeat(10));
+            ).repeat(5));
+            console.log(grid.toString());
         }
-    },
 
+    },
     
     refreshData : function () {
         console.log("refresh map");
