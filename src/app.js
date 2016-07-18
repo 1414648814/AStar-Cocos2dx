@@ -3,6 +3,7 @@ var changeType = {
     CHANGE_Grid_Size : 2,
 };
 
+// 复选框+内容
 var NCheckBox = cc.Node.extend({
     ctor : function () {
         this._super();
@@ -36,7 +37,7 @@ var NCheckBox = cc.Node.extend({
     },
 
     _text : null,
-    _checkbox : null,
+    _checkbox : null
 
 });
 
@@ -44,27 +45,92 @@ NCheckBox.create = function () {
     return new NCheckBox();
 };
 
+// 下拉框+内容
 var NDropDownMenu = cc.Node.extend({
     ctor : function () {
         this._super();
+        var button = new ccui.Button();
+        button.setTouchEnabled(true);
+        button.setAnchorPoint(0.5, 0.5);
+        button.setTitleText("请选择");
+        button.setPosition(this.getContentSize().width/2, this.getContentSize().height/2);
+        button.addClickEventListener(this.popUpScroll.bind(this));
+        this.addChild(button);
+        this._firstButton = button;
+
+        this._scroll = new NDropDownScroll();
+        this._scroll.setAnchorPoint(0.5, 0.5);
+        this._scroll.setPosition(this.getContentSize().width/2, this.getContentSize().height/2);
+        this._scroll.setVisible(false);
+        this.addChild(this._scroll);
+
+    },
+
+    popUpScroll : function () {
+        if (this._optionVals.length > 0) {
+            this.setOptionValue(this._optionVals[0]);
+            this._scroll.setContentVals(this._optionVals);
+            this._scroll.setVisible(true);
+            this._firstButton.setVisible(false);
+        }
+    },
+
+    getFirstBtn : function () {
+        return this._firstButton;
     },
 
     getOptionValue : function () {
-        return this._curOptionVal;
+        return this._firstButton.getTitleText();
+    },
+
+    setOptionValue : function (val) {
+        this._firstButton.setTitleText(val);
     },
 
     setOptionValues : function (arr) {
-        this._OptionVals = arr;
+        this._optionVals = arr;
     },
 
     _curOptionVal : null,
-    _OptionVals : null,
+    _optionVals : null,
 
+    _firstButton : null,
+    _scroll : null
 });
 
 NDropDownMenu.create = function () {
     return new NDropDownMenu();
 };
+
+var NDropDownScroll = ccui.ScrollView.extend({
+    ctor : function () {
+        this._super();
+        this.setDirection(ccui.ScrollView.DIR_VERTICAL);
+        this.setTouchEnabled(true);
+    },
+
+    setContentVals : function (arr) {
+        this.removeAllChildren();
+        this.setContentSize(cc.size(200, arr.length * 20));
+        for (var i = 0; i < arr.length; i++) {
+            var textbutton = new ccui.Button();
+            textbutton.setAnchorPoint(0.5, 1);
+            textbutton.setPosition(this.getContentSize().width/2, this.getContentSize().height - i * 20);
+            textbutton.setTouchEnabled(true);
+            textbutton.loadTextures();
+            textbutton.setTitleText(arr[i].toString());
+            textbutton.addClickEventListener(this.setDeopDownSelectText.bind(this, textbutton.getTitleText()));
+            this.addChild(textbutton);
+        }
+    },
+
+    setDeopDownSelectText : function (text) {
+        this.setVisible(false);
+        this.getParent().setOptionValue(text);
+        this.getParent().getFirstBtn().setVisible(true);
+    },
+
+});
 
 var HelloWorldLayer = cc.Layer.extend({
     ctor:function () {
@@ -91,10 +157,39 @@ var HelloWorldLayer = cc.Layer.extend({
 
         this._checkboxs = [];
         this._dropdowns = [];
+
         // 下拉选择框
-        // (暂时)
-        this._grid_size = 20;
-        this._wall_frequency = 0.1;
+        var gsText = new ccui.Text();
+        gsText.setText("格子大小");
+        gsText.setFontName("Marker Felt");
+        gsText.setFontSize(20);
+        gsText.setAnchorPoint(0, 1);
+        gsText.setPosition(0, size.height - 180);
+        this.addChild(gsText);
+
+        var gridSizeContent = ["10 * 10", "20 * 20", "30 * 30", "40 * 40"];
+        var gsDropDown = NDropDownMenu.create();
+        gsDropDown.setAnchorPoint(0, 1);
+        gsDropDown.setPosition(120, gsText.getPositionY()  - gsText.getContentSize().height/2);
+        gsDropDown.setOptionValues(gridSizeContent);
+        this.addChild(gsDropDown);
+        this._dropdowns.push(gsDropDown);
+
+        var fText = new ccui.Text();
+        fText.setText("障碍频率");
+        fText.setFontName("Marker Felt");
+        fText.setFontSize(20);
+        fText.setAnchorPoint(0, 1);
+        fText.setPosition(0, size.height - 250);
+        this.addChild(fText);
+
+        var frequencyContent = ["10%", "20%", "30%", "40%"];
+        var fDropDown = NDropDownMenu.create();
+        fDropDown.setAnchorPoint(0, 0);
+        fDropDown.setPosition(120, fText.getPositionY() - fText.getContentSize().height/2);
+        fDropDown.setOptionValues(frequencyContent);
+        this.addChild(fDropDown);
+        this._dropdowns.push(fDropDown);
 
         // 复选框内容
         var boxCentent = ["显示搜索信息", "对角线移动", "尽可能接近目标", "添加任意权值", "显示权值"];
@@ -129,7 +224,7 @@ var HelloWorldLayer = cc.Layer.extend({
         var nodes = [];
         var startSet = false;
 
-        var num = this.getGridSize() == null ? 40 : this.getGridSize();
+        var num = this.getGridSize();
         for (var i = 0; i < num; i++) {
             var gridRow = [], nodeRow = [];
             for (var j = 0; j < num; j++) {
@@ -232,10 +327,44 @@ var HelloWorldLayer = cc.Layer.extend({
     },
 
     getGridSize : function () {
+        switch (this._dropdowns[0].getOptionValue()) {
+            case "请选择" :
+                this._grid_size = 10;
+                break;
+            case "10 * 10" :
+                this._grid_size = 10;
+                break;
+            case "20 * 20" :
+                this._grid_size = 20;
+                break;
+            case "30 * 30" :
+                this._grid_size = 30;
+                break;
+            case "40 * 40" :
+                this._grid_size = 40;
+                break;
+        }
         return this._grid_size;
     },
 
     getWallFrequency : function () {
+        switch (this._dropdowns[0].getOptionValue()) {
+            case "请选择":
+                this._wall_frequency = 0.1;
+                break;
+            case "10%" :
+                this._wall_frequency = 0.1;
+                break;
+            case "20%" :
+                this._wall_frequency = 0.2;
+                break;
+            case "30%" :
+                this._wall_frequency = 0.3;
+                break;
+            case "40%" :
+                this._wall_frequency = 0.4;
+                break;
+        }
         return this._wall_frequency;
     },
 
