@@ -66,6 +66,11 @@ var Grid = ccui.Button.extend({
         this._state = GridState.GRID_NORMAL;
     },
 
+    setTest : function () {
+        this.loadTextures("res/6.png","res/6.png","res/6.png");
+        this._state = GridState.GRID_NORMAL;
+    },
+
     toString : function () {
         return "[" + this.getX() + "," + this.getY() + "]";
     },

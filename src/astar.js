@@ -7,8 +7,8 @@
 // A星对象
 var AStar = {
     // 搜索函数
-    SearchPath : function(Graph, start, end, options) {
-        Graph.cleanDirty();
+    SearchPath : function(graph, start, end, options) {
+        graph.cleanDirty();
 
         options = options || {};
         var heuristic = options.heuristic || AStar.manhattan;
@@ -22,10 +22,11 @@ var AStar = {
         start.h = heuristic(start,end);
 
         //标记开始节点
-        Graph.markDirty(start);
+        graph.markDirty(start);
 
         openHeap.Push(start);
 
+        // 使用了BFS的队列的思路
         while(openHeap.Size() > 0){
             //取出尾节点
             var currentNode = openHeap.Pop();
@@ -37,13 +38,15 @@ var AStar = {
             //移动节点从开列表到闭列表
             currentNode.closed = true;
 
-            //找出所有邻居节点
-            var neighbors = Graph.neighbors(currentNode);
-
-            for(var i = 0;i < neighbors.length;++i){
+            //找出所有邻居节点(4个,如果允许斜线方向则是8个),并分别计算中心结点和邻居结点的h g f值
+            var neighbors = graph.neighbors(currentNode);
+            for(var i = 0; i < neighbors.length; ++i){
                 var neighbor = neighbors[i];
 
                 //闭列表中的和不可到达则不访问
+                //if (neighbor.closed) console.log("neigbor (" + neighbor.getX() + "," + neighbor.getY() + ") closed");
+                //if (neighbor.isWall()) console.log("neigbor (" + neighbor.getX() + "," + neighbor.getY() + ") is wall");
+
                 if(neighbor.closed || neighbor.isWall()){
                     continue;
                 }
@@ -62,24 +65,25 @@ var AStar = {
                     neighbor.g = gScore;
                     neighbor.f = neighbor.g + neighbor.h;
 
-                    Graph.markDirty(neighbor);
+                    graph.markDirty(neighbor);
 
                     if(closest){
+                        // 如果邻居结点比最近的结点更近
                         if (neighbor.h  < closetNode.h || (neighbor.h === closetNode.h && neighbor.g < closetNode.g)) {
                             closetNode = neighbor;
                         }
                     }
 
                     if(!beenVisited){
+                        // 加入堆中,根据结点的f值放在相应的位置
                         openHeap.Push(neighbor);
                     }
                     else{
+                        // 重新排序
                         openHeap.RescoreElement(neighbor);
                     }
                 }
-
             }
-
         }
         //找到靠近目标节点
         if(closest) {
@@ -105,7 +109,6 @@ var AStar = {
         var distance1 = Math.abs(pos1.x - pos0.x);
         var distance2 = Math.abs(pos1.y - pos0.y);
         return Math.sqrt(distance1 * distance1 + distance2 * distance2) * straightCost;
-
     },
 
     //斜线距离（综合了曼哈顿和几何）
@@ -128,15 +131,14 @@ var AStar = {
         node.visited = false;
         node.closed = false;
         node.parent = null;
-
     },
-
 
     //返回路径（通过父亲结点）
     pathTo : function (node) {
         var curr = node;
         var path = [];
         while (curr.parent) {
+            // 加入数组的头部
             path.unshift(curr);
             curr = curr.parent;
         }
@@ -348,28 +350,28 @@ BinaryHeap.prototype = {
         var elemScore = this.scoreFunction(element);
 
         while(1) {
+            // 计算结点的左右子结点
             var child2N = (n + 1)<<1;
             var child1N = child2N - 1;
 
             var swap = null;
+            var child1Score;
             //如果子节点存在
             if(child1N < length){
-                //计算分数
                 var child1 = this.content[child1N];
-                var child1Score = this.scoreFunction(child1);
+                child1Score = this.scoreFunction(child1);  //返回结点的f值
 
-                //如果子节点的值小于父亲节点，则需要进行交换
+                //如果左结点f值小于父亲节点的，则需要进行交换
                 if(child1Score < elemScore){
                     swap = child1N;
                 }
             }
             //同样操作
             if(child2N < length){
-                //计算分数
-                var child2 = this.content[child1N];
-                var child2Score = this.scoreFunction(child2);
+                var child2 = this.content[child2N];
+                var child2Score = this.scoreFunction(child2);  //返回结点的f值
 
-                //如果子节点的值小于父亲节点，则需要进行交换
+                //如果右结点f值小于父亲结点和左结点的最小值，则需要进行交换
                 if(child2Score < (swap === null ? elemScore : child1Score)){
                     swap = child2N;
                 }
@@ -385,7 +387,6 @@ BinaryHeap.prototype = {
                 break;
             }
         }
-
     },
 
     // 下移

@@ -148,7 +148,7 @@ var HelloWorldLayer = cc.Layer.extend({
                     nodeRow.push(0);
                 }
                 else {
-                    var grid_height = this._checkboxs[4].getSelectCheckBoxState() ? Math.floor(Math.random() * 3) * 2 + 1 : 1;
+                    var grid_height = this.getAddRamdomHeight() ? Math.floor(Math.random() * 3) * 2 + 1 : 1;
                     nodeRow.push(grid_height);
                     if (!startSet) {
                         grid.setStart();
@@ -174,10 +174,14 @@ var HelloWorldLayer = cc.Layer.extend({
         if (this._path_running)
             return ;
 
-        console.log("the (" + sender.getX() +"," + sender.getY() + ") click it");
         if (sender.getState() == GridState.GRID_START || sender.getState() == GridState.GRID_WALL) {
             return ;
         }
+
+        //清理结点
+        this._graph.init();
+        this._graph.cleanDirty();
+
         var end = this.getGridCellItem(sender);
         var start = this.getGridCellItem(this._startItem);
 
@@ -217,7 +221,7 @@ var HelloWorldLayer = cc.Layer.extend({
                 cc.delayTime(0.25),
                 cc.callFunc(FadeToYellowAction.bind(this, grid))
             ).repeat(5));
-            console.log(grid.toString());
+            //console.log(grid.toString());
         }
 
     },
